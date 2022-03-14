@@ -1,6 +1,14 @@
 <template>
   <div id="app">
-    <form @submit.prevent="handleSubmit">
+    <div v-if="!isLoading">
+      <ul v-for="character in characters" :key="character.name">
+        <li>{{ character.name }}</li>
+      </ul>
+    </div>
+    <div v-else>
+      <p>Loading...</p>
+    </div>
+    <form v-on:submit.prevent="handleSubmit">
       <input name="name" v-model="name" />
       <button type="button" v-on:click="handleSubmit" form="name">
         Submit
@@ -22,17 +30,31 @@
 </template>
 
 <script>
+import axios from "axios";
 import HelloWorld from "./components/HelloWorld.vue";
 
 export default {
   name: "App",
   data: function () {
     return {
+      error: null,
+      isLoading: true,
+      characters: [],
       name: "",
       title: "",
       todoId: 0,
       todos: [],
     };
+  },
+  mounted: async function () {
+    try {
+      const { data } = await axios.get("https://swapi.dev/api/people");
+      this.characters = data.results;
+    } catch (err) {
+      this.error = err;
+    } finally {
+      this.isLoading = false;
+    }
   },
   methods: {
     handleName: function (event) {
